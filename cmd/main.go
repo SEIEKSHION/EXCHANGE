@@ -84,20 +84,24 @@ func ProceedExchangeVaults(body []byte) (map[string]float64, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetVaultExchange:\n\t\tError while parsing from XML: %v", err)
 	}
+
+	resultMap := make(map[string]float64)
 	for _, valute := range valCurs.Valutes {
-		if valute.ID == "R01030" {
-			fmt.Println(valute.Name)
-			fmt.Println(valute.GetNumericVunitRate())
+		resultMap[valute.CharCode], err = valute.GetNumericVunitRate()
+		if err != nil {
+			return nil, fmt.Errorf("ProceedExchangeVaults:\n\tError while combining data: %v", err)
 		}
-		// ID        string `xml:"ID,attr"`
-		// NumCode   string `xml:"NumCode"`
-		// CharCode  string `xml:"CharCode"`
-		// Nominal   int    `xml:"Nominal"`
-		// Name      string `xml:"Name"`
-		// Value     string `xml:"Value"`
-		// VunitRate string `xml:"VunitRate"`
 	}
-	return nil, nil
+	fmt.Println("Количество валют:", len(valCurs.Valutes))
+	return resultMap, nil
+}
+
+func PrintValutes(data map[string]float64) {
+	now := string(time.Now().Format("02/01/2006"))
+	fmt.Printf("Курс следующих валют на сегодняшний день (%s):\n", now)
+	for name, unitrate := range data {
+		fmt.Printf("\tКурс %s составляет %.3f руб.\n", name, unitrate)
+	}
 }
 
 func main() {
@@ -111,6 +115,6 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("Main:\n\t%v", err))
 	}
-	fmt.Println(data)
+	PrintValutes(data)
 
 }
