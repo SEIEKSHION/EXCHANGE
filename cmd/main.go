@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/net/html/charset"
 )
@@ -62,25 +64,36 @@ func GetVaultExchange() ([]byte, error) { // заменить первый вы�
 }
 
 func ProceedExchangeVaults(body []byte) ([]Valute, error) {
-
-	var reader io.Reader = nil
-	reader, err := charset.NewReaderLabel("windows-1251", bytes.NewReader(body)) // декодирование из windows1251 в utf8
-	if err != nil {
-		return nil, fmt.Errorf("GetVaultExchange:\n\t\tError while decoding: %v", err)
+	// Проверяем, валиден ли body как UTF-8
+	if !utf8.Valid(body) {
+		// Тогда пробуем декодировать из windows-1251
+		reader, err := charset.NewReaderLabel("windows-1251", bytes.NewReader(body))
+		if err != nil {
+			return nil, fmt.Errorf("GetVaultExchange:\n\t\tError creating decoder: %v", err)
+		}
+		body, err = io.ReadAll(reader)
+		if err != nil {
+			return nil, fmt.Errorf("GetVaultExchange:\n\t\tError while reading UTF-8: %v", err)
+		}
 	}
 
-	var utf8Body []byte
-	utf8Body, err = io.ReadAll(reader)
-	if err != nil {
-		return nil, fmt.Errorf("GetVaultExchange:\n\t\tError while reading UTF-8: %v", err)
-	}
+	// Теперь body гарантированно валиден как UTF-8
+	utf8Str := string(body)
 
-	// Декодируем XML
+	// Удаляем декларацию encoding из XML заголовка
+	// Ищем <?xml ... encoding="..." ... ?>
+	re := regexp.MustCompile(`(<\?xml[^>]*?)\s+encoding\s*=\s*["'][^"']*["']([^>]*?\?>)`)
+	utf8StrCleaned := re.ReplaceAllString(utf8Str, "${1}${2}")
+
+	// Преобразуем обратно в []byte
+	cleanedBody := []byte(utf8StrCleaned)
+
 	var valCurs ValCurs
-	decoder := xml.NewDecoder(bytes.NewReader(utf8Body))
-	decoder.CharsetReader = charset.NewReaderLabel // Указываем обработчик кодировок
+	decoder := xml.NewDecoder(bytes.NewReader(cleanedBody))
+	// Теперь CharsetReader можно не устанавливать, так как декларации нет
+	// decoder.CharsetReader = charset.NewReaderLabel // Не нужно
 
-	err = decoder.Decode(&valCurs)
+	err := decoder.Decode(&valCurs)
 	if err != nil {
 		return nil, fmt.Errorf("GetVaultExchange:\n\t\tError while parsing from XML: %v", err)
 	}
@@ -90,13 +103,13 @@ func ProceedExchangeVaults(body []byte) ([]Valute, error) {
 
 func PrintValutes(data []Valute) error {
 	now := string(time.Now().Format("02/01/2006"))
-	fmt.Printf("Курс следующих валют на сегодняшний день (%s):\n", now)
+	fmt.Printf("	Курс следующих валют на сегодняшний день (%s):\n", now)
 	for _, valute := range data {
 		vUnit, err := valute.GetNumericVunitRate()
 		if err != nil {
 			return fmt.Errorf("PrintValutes: Failed to get numericVunitRate, error: %v", err)
 		}
-		fmt.Printf("Курс %s(%s) составляет %.3f руб.", valute.CharCode, valute.Name, vUnit)
+		fmt.Printf("Курс %s(%s) составляет %.3f руб.\n", valute.CharCode, valute.Name, vUnit)
 	}
 	return nil
 }
