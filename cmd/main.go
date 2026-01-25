@@ -61,7 +61,7 @@ func GetVaultExchange() ([]byte, error) { // заменить первый вы�
 	return body, nil
 }
 
-func ProceedExchangeVaults(body []byte) (map[string]float64, error) {
+func ProceedExchangeVaults(body []byte) ([]Valute, error) {
 
 	var reader io.Reader = nil
 	reader, err := charset.NewReaderLabel("windows-1251", bytes.NewReader(body)) // декодирование из windows1251 в utf8
@@ -85,36 +85,34 @@ func ProceedExchangeVaults(body []byte) (map[string]float64, error) {
 		return nil, fmt.Errorf("GetVaultExchange:\n\t\tError while parsing from XML: %v", err)
 	}
 
-	resultMap := make(map[string]float64)
-	for _, valute := range valCurs.Valutes {
-		resultMap[valute.CharCode], err = valute.GetNumericVunitRate()
-		if err != nil {
-			return nil, fmt.Errorf("ProceedExchangeVaults:\n\tError while combining data: %v", err)
-		}
-	}
-	fmt.Println("Количество валют:", len(valCurs.Valutes))
-	return resultMap, nil
+	return valCurs.Valutes, nil
 }
 
-func PrintValutes(data map[string]float64) {
+func PrintValutes(data []Valute) error {
 	now := string(time.Now().Format("02/01/2006"))
 	fmt.Printf("Курс следующих валют на сегодняшний день (%s):\n", now)
-	for name, unitrate := range data {
-		fmt.Printf("\tКурс %s составляет %.3f руб.\n", name, unitrate)
+	for _, valute := range data {
+		vUnit, err := valute.GetNumericVunitRate()
+		if err != nil {
+			return fmt.Errorf("PrintValutes: Failed to get numericVunitRate, error: %v", err)
+		}
+		fmt.Printf("Курс %s(%s) составляет %.3f руб.", valute.CharCode, valute.Name, vUnit)
 	}
+	return nil
 }
 
 func main() {
-	// получение данных
 	body, err := GetVaultExchange()
 	if err != nil {
 		panic(fmt.Errorf("Main: \n\t%v", err))
 	}
-	var data map[string]float64
-	data, err = ProceedExchangeVaults(body)
+	var valutes []Valute
+	valutes, err = ProceedExchangeVaults(body)
 	if err != nil {
 		panic(fmt.Errorf("Main:\n\t%v", err))
 	}
-	PrintValutes(data)
-
+	err = PrintValutes(valutes)
+	if err != nil {
+		panic(fmt.Errorf("Main: \n\t%v", err))
+	}
 }
