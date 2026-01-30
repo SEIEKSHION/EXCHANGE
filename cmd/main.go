@@ -12,6 +12,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/SEIEKSHION/Exchanger/internal/server"
 	"golang.org/x/net/html/charset"
 )
 
@@ -128,4 +129,5 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("Main: \n\t%v", err))
 	}
+	server.StartServer()
 }
