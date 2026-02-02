@@ -1,68 +1,156 @@
 package server
 
 import (
-	"net/http"
-	"strings"
-	"time"
+	"context"
 	"errors"
-	"unicode/utf8"
+	"fmt"
+	"net/http"
 	"strconv"
-	// "flag" TODO: Добавить реализацию создания сервера на другом порту
+	"strings"
+	"sync"
+	"time"
+	"unicode/utf8"
+
+	"github.com/SEIEKSHION/Exchanger/internal/handlers"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 var (
-	AddrIsEmptyError = errors.New("AddrValidation: address can't be empty")
-	ReadTimeoutIsZero = errors.New("AddrValidation: read timeout can't be zero")
-	AddrIsInvalid = errors.New("AddrValidation: address doesn't have a prefix : ")
-	InvalidPortNumbers = errors.New("AddrValidation: the port must be in the range from 1024 to 65535")
+	AddrIsEmptyError   = errors.New("addr validation: address can't be empty")
+	ReadTimeoutIsZero  = errors.New("addr validation: read timeout can't be zero")
+	AddrIsInvalid      = errors.New("addr validation: address doesn't have a prefix : ")
+	InvalidPortNumbers = errors.New("addr validation: the port must be in the range from 1024 to 65535")
 )
 
-// Функция валидации адреса
-func addrValidation(addr string) (bool, error) {
+type Server struct {
+	httpServer *http.Server
+	mu         sync.Mutex
+	running    bool
+}
+
+// Валидация адреса
+func addrValidation(addr string) error {
 	if utf8.RuneCountInString(addr) == 0 {
-		return false, AddrIsEmptyError
+		return AddrIsEmptyError
 	}
-	
-	portNumbersString, found := strings.CutPrefix(":")
+
+	portNumbersString, found := strings.CutPrefix(addr, ":")
 	if !found {
-		return false, AddrIsInvalid
+		return AddrIsInvalid
 	}
-	
-	if !strings.ContainsAny(addr, "0123456789") || {
-		return false, AddrIsInvalid
+
+	if !strings.ContainsAny(addr, "0123456789") {
+		return AddrIsInvalid
 	}
-	
+
 	portNumber, err := strconv.Atoi(portNumbersString)
 	if err != nil {
-		return false, InvalidPortNumbers
+		return InvalidPortNumbers
 	}
-	
+
 	if !(portNumber > 1023 && portNumber < 65536) {
-		return false, InvalidPortNumbers
+		return InvalidPortNumbers
 	}
-	
-	return true, nil
+
+	return nil
 }
 
 // Создание сервера
-func NewServer(addr string, readtimeout, writetimeout time.Duration) (*http.Server, error) {
-	addrIsValid, err := addrValidation()
-	if err != nil {
-		return nil, err
+func NewServer(addr string, handler *handlers.Handler) (*Server, error) {
+	if err := addrValidation(addr); err != nil {
+		return nil, fmt.Errorf("server creation failed: %w", err)
 	}
-	
-	return &http.Server{
+
+	r := gin.Default()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use(cors.Default())
+
+	// Статические файлы
+	r.Static("/src", "./src")
+	r.LoadHTMLGlob("templates/*")
+	r.StaticFile("/favicon.ico", "./src/images/favicon.ico")
+
+	// Маршруты
+	api := r.Group("/api")
+	{
+		api.GET("/valutes", handler.GetValutes)
+		api.POST("/convert", handler.ConvertCurrency)
+	}
+	r.GET("/", handler.MainPage)
+
+	srv := &http.Server{
 		Addr:         addr,
-		ReadTimeout:  readtimeout,
-		Writetimeout: writetimeout}, nil
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	return &Server{
+		httpServer: srv,
+	}, nil
 }
 
-// Запуск сервера
-func StartServer(addr string) error {
-	server, err := NewServer(addr, 10 * time.Second, 10 * time.Second)
-	if err != nil {
-		return fmt.Errorf("Fail when creating a server: %v", err)
+// Запуск сервера (неблокирующий)
+func (s *Server) Start() error {
+	s.mu.Lock()
+	if s.running {
+		s.mu.Unlock()
+		return errors.New("server is already running")
 	}
-	go server.ListenAndServe()
-	fmt.Println("Server started succesfully!")
+	s.running = true
+	s.mu.Unlock()
+
+	go func() {
+		if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			fmt.Printf("Server error: %v\n", err)
+			s.mu.Lock()
+			s.running = false
+			s.mu.Unlock()
+		}
+	}()
+
+	fmt.Printf("Server started successfully on %s!\n", s.httpServer.Addr)
+	return nil
+}
+
+// Остановка сервера
+func (s *Server) Stop(timeout time.Duration) error {
+	s.mu.Lock()
+	if !s.running {
+		s.mu.Unlock()
+		return errors.New("server is not running")
+	}
+	s.running = false
+	s.mu.Unlock()
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("server shutdown failed: %w", err)
+	}
+
+	fmt.Println("Server stopped successfully!")
+	return nil
+}
+
+// Проверка состояния сервера
+func (s *Server) IsRunning() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.running
+}
+
+// Запуск сервера (старый интерфейс для совместимости)
+func StartServer(addr string, handler *handlers.Handler) error {
+	server, err := NewServer(addr, handler)
+	if err != nil {
+		return fmt.Errorf("failed to create server: %w", err)
+	}
+
+	return server.Start()
 }
