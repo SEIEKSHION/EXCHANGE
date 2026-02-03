@@ -69,9 +69,9 @@ func NewServer(addr string, handler *handlers.Handler) (*Server, error) {
 	r.Use(cors.Default())
 
 	// Статические файлы
-	r.Static("/src", "./src")
+	r.Static("/static", "./static")
 	r.LoadHTMLGlob("templates/*")
-	r.StaticFile("/favicon.ico", "./src/images/favicon.ico")
+	r.StaticFile("/favicon.png", "./static/images/favicon.png")
 
 	// Маршруты
 	api := r.Group("/api")

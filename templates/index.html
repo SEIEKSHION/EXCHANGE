@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="src/styles.css">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="static/css/styles.css">
+    <link rel="icon" type="image/png" href="favicon.png">
     <title>Конвертер валют</title>
 </head>
 <body>
@@ -12,7 +12,7 @@
         <h1>Конвертер валют</h1>
         <div class="currency-converter">
             <div class="form-group">
-                <label for="toValute">Выберите валюту</label>
+                <label for="fromValute">Выберите валюту</label>
                 <select name="fromValute" id="fromValute">
                   <option value="">Загрузка валют...</option>
                 </select>
@@ -28,79 +28,6 @@
         </div>
     </div>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const select = document.getElementById('toValute');
-            const convertBtn = document.getElementById('convertBtn');
-            const resultDiv = document.getElementById('result');
-            const errorDiv = document.getElementById('errorMessage');
-            
-            // Добавляем класс загрузки
-            select.classList.add('loading');
-            
-            fetch('/api/valutes')
-                .then(response => {
-                  
-                    if (!response.ok) {
-                        throw new Error('Ошибка сети');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Полученные данные:", data)
-                    select.classList.remove('loading');
-                    select.innerHTML = '<option value="">Выберите валюту</option>';
-                    
-                    data.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item.Value || item.CharCode;
-                        option.textContent = item.Name || `${item.Name} (${item.CharCode})`;
-                        select.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    select.classList.remove('loading');
-                    errorDiv.textContent = 'Не удалось загрузить список валют. Пожалуйста, попробуйте позже.';
-                    errorDiv.style.display = 'block';
-                });
-            
-            // Обработчик кнопки конвертации
-            convertBtn.addEventListener('click', function() {
-                const selectedCurrency = select.value;
-                const enteredQuantity = document.getElementById("cQ").valueAsNumber;
-                if (!selectedCurrency) {
-                    errorDiv.textContent = 'Пожалуйста, выберите валюту';
-                    errorDiv.style.display = 'block';
-                    return;
-                }
-                
-                errorDiv.style.display = 'none';
-                resultDiv.textContent = `Выбрана валюта: ${select.options[select.selectedIndex].text}`;
-                resultDiv.classList.add('show');
-                fetch('/api/convert', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    currency: select.options[select.selectedIndex].text,
-                    quantity: enteredQuantity
-                  })
-                  // Currency string  `json:"currency"`
-	                // Quantity float64 `json:"quantity"`
-                })
-                .then(response => response.json())
-                .then(data => {
-                  console.log('Результат:', data.quantity);
-                  resultDiv.textContent = `${data.quantity} рублей это - ` + `${enteredQuantity.toString()} ${select.options[select.selectedIndex].text}`
-                })
-                .catch(error => console.error('Ошибка:', error));
-            });
-        });
-        
-        
-        
-    </script>
+    <script src="static/js/loadValutes.js"></script>
 </body>
 </html>
