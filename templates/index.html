@@ -1,33 +1,79 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/css/styles.css">
+    <title>Dummy Site</title>
+    <link rel="stylesheet" href="static/css/style.css">
     <link rel="icon" type="image/png" href="favicon.png">
-    <title>Конвертер валют</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Конвертер валют</h1>
-        <div class="currency-converter">
-            <div class="form-group">
-                <label for="fromValute">Выберите валюту</label>
-                <select name="fromValute" id="fromValute">
-                  <option value="">Загрузка валют...</option>
-                </select>
-                <label for="toValute">Выберите валюту</label>
-                <select name="toValute" id="toValute">
-                    <option value="">Загрузка валют...</option>
-                </select>
-                <input type="number" min="1" step="" id="cQ">Введите количество конвертируемой валюты</input>
-            </div>
-            <button id="convertBtn">Конвертировать</button>
-            <div class="result" id="result"></div>
-            <div class="error-message" id="errorMessage"></div>
+    <!-- Header with Login/Register buttons -->
+    <header class="header">
+        <div class="header-right">
+            <button class="btn btn-outline">Login</button>
+            <button class="btn btn-primary">Register</button>
         </div>
+    </header>
+
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Left Panel -->
+        <aside class="left-panel">
+            <div class="panel-card">
+                <h2 class="panel-title">Navigation Panel</h2>
+                <nav class="nav-list">
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="/exchanger" class="nav-item">
+                        <span class="nav-icon">🪙</span>
+                        <span>Exchanger</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">✉️</span>
+                        <span>Messages</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">🔔</span>
+                        <span>Notifications</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="panel-card">
+                <h2 class="panel-title">Quick Stats</h2>
+                <div class="stats-list">
+                    <div class="stat-row">
+                        <span class="stat-label">Total Users</span>
+                        <span class="stat-value">1,234</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Active Now</span>
+                        <span class="stat-value">89</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">New Today</span>
+                        <span class="stat-value">12</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <h1>Welcome to Dummy Site</h1>
+            <p>This is a simple dummy website with a left panel containing navigation items and stats. The login and register buttons are positioned in the top right corner as requested.</p>
+        </main>
     </div>
-    
-    <script src="static/js/loadValutes.js"></script>
 </body>
 </html>

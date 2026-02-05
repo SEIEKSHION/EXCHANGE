@@ -32,6 +32,10 @@ func (h *Handler) MainPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", nil)
 }
 
+func (h *Handler) Exchanger(c *gin.Context) {
+	c.HTML(http.StatusOK, "exchanger.html", nil)
+}
+
 type ConvertRequest struct { // формат запроса по валюте
 	FromCurrency string  `json:"fromcurrency"`
 	ToCurrency   string  `json:"tocurrency"`

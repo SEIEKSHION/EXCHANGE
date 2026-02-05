@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/exchanger.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Конвертер валют</title>
+</head>
+<body>
+    <div class="home"><a href="/">Home<a></div>
+    <div class="container">
+        <h1>Конвертер валют</h1>
+        <div class="currency-converter">
+            <div class="form-group">
+                <label for="fromValute">Выберите валюту</label>
+                <select name="fromValute" id="fromValute">
+                  <option value="">Загрузка валют...</option>
+                </select>
+                <label for="toValute">Выберите валюту</label>
+                <select name="toValute" id="toValute">
+                    <option value="">Загрузка валют...</option>
+                </select>
+                <input type="number" min="1" id="cQ" placeholder="Введите количество конвертируемой валюты" required>
+            </div>
+            <button id="convertBtn">Конвертировать</button>
+            <div class="result" id="result"></div>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+    
+    <script src="static/js/loadValutes.js"></script>
+</body>
+</html>

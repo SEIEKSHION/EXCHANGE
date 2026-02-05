@@ -80,6 +80,7 @@ func NewServer(addr string, handler *handlers.Handler) (*Server, error) {
 		api.POST("/convert", handler.ConvertCurrency)
 	}
 	r.GET("/", handler.MainPage)
+	r.GET("/exchanger", handler.Exchanger)
 
 	srv := &http.Server{
 		Addr:         addr,

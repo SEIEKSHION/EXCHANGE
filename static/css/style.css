@@ -1,0 +1,159 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    min-height: 100vh;
+}
+
+/* Header */
+.header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    gap: 12px;
+}
+
+/* Buttons */
+.btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid #7D39EB;
+    color: #7D39EB;
+}
+
+.btn-outline:hover {
+    background-color: #7D39EB;
+    color: #ffffff;
+}
+
+.btn-primary {
+    background-color: #7D39EB;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #6b2fd4;
+}
+
+/* Main container */
+.main-container {
+    display: flex;
+    min-height: calc(100vh - 65px);
+}
+
+/* Left Panel */
+.left-panel {
+    width: 280px;
+    background-color: #ffffff;
+    border-right: 1px solid #e5e5e5;
+    padding: 20px;
+}
+
+.panel-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 12px;
+}
+
+/* Navigation list */
+.nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #000000;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: #C6FF33;
+}
+
+.nav-icon {
+    font-size: 16px;
+}
+
+/* Stats list */
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #666;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #7D39EB;
+}
+
+/* Main content */
+.main-content {
+    flex: 1;
+    padding: 40px;
+}
+
+.main-content h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 16px;
+}
+
+.main-content p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    max-width: 600px;
+}

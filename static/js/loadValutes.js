@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			    selectFromValute.appendChild(createOption(item.Value, item.Name));
 			    selectToValute.appendChild(createOption(item.Value, item.Name));
 			});
+			selectFromValute.appendChild(createOption())
+			selectToValute.appendChild(createOption())
         })
         .catch(error => {
             console.error('Ошибка:', error);
