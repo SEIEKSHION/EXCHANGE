@@ -29,11 +29,24 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("Main:\n\t%v", err))
 	}
-	muscle, err := models.NewMuscle("Бицепс", 94.6, time.Now())
+
+	muscle1, err := models.NewMuscle("Бицепс", 94.6, time.Now().UTC())
 	if err != nil {
-		fmt.Errorf("Error: %v", err)
+		fmt.Errorf("Failed to create muscle1: %v", err)
+		os.Exit(1)
 	}
-	var muscles []models.Muscle = []models.Muscle{muscle}
+	muscle2, err := models.NewMuscle("Трицепс", 38.4, time.Now().UTC())
+	if err != nil {
+		fmt.Errorf("Failed to create muscle2: %v", err)
+		os.Exit(1)
+	}
+	muscle3, err := models.NewMuscle("Предплечья", 26.2, time.Now().UTC())
+	if err != nil {
+		fmt.Errorf("Failed to create muscle3: %v", err)
+		os.Exit(1)
+	}
+
+	var muscles []models.Muscle = []models.Muscle{muscle1, muscle2, muscle3}
 
 	muscleHandler := handlers.NewMuscleHandler(muscles)
 	exchangeHandler := handlers.NewHandler(valutes)

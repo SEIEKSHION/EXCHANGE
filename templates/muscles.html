@@ -1,136 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Muscle Measurements</title>
-   <link rel="icon" type="image/png" href="favicon.png">
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-    }
-    tr:hover {
-      background-color: #f5f5f5;
-    }
-    .error {
-      color: #d32f2f;
-      padding: 10px;
-      background-color: #ffebee;
-      border-radius: 4px;
-      margin: 10px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Muscles Data</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-  <h1>Таблица с измерениями</h1>
-  
-  <div id="error-container"></div>
-  
-  <table id="muscles-table">
-    <thead>
-      <tr>
-        <th>Мышцы</th>
-        <th>Замеры (cm)</th>
-        <th>Дата измерения</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Данные будут загружены здесь -->
-    </tbody>
-  </table>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const tableBody = document.querySelector('#muscles-table tbody');
-      const errorContainer = document.getElementById('error-container');
-      
-      // Очистка предыдущих ошибок
-      function clearErrors() {
-        errorContainer.innerHTML = '';
-      }
-      
-      // Показ ошибки
-      function showError(message) {
-        errorContainer.innerHTML = `<div class="error">⚠️ ${message}</div>`;
-      }
-
-      // Загрузка данных
-      fetch('/api/muscles')
-        .then(response => {
-          console.log(response)
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          clearErrors();
-          
-          // Очистка таблицы перед загрузкой новых данных
-          tableBody.innerHTML = '';
-          
-          // Проверка, что данные - это массив
-          if (!Array.isArray(data)) {
-            throw new Error('Invalid data format: expected an array');
-          }
-
-          // Обработка каждого элемента
-          data.forEach(item => {
-            const row = document.createElement('tr');
-            
-            // Форматирование даты (преобразуем из формата Go time.Time)
-            const measureDate = new Date(item.timestamp);
-            const formattedDate = isNaN(measureDate) 
-              ? 'Invalid date' 
-              : measureDate.toLocaleString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                });
-
-            row.innerHTML = `
-              <td>${item.name || 'N/A'}</td>
-              <td>${typeof item.measure === 'number' 
-                ? item.measure.toFixed(2) 
-                : 'N/A'}</td>
-              <td>${formattedDate}</td>
-            `;
-            
-            tableBody.appendChild(row);
-          });
-
-          // Если данные пустые
-          if (data.length === 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = '<td colspan="3" style="text-align: center">No data available</td>';
-            tableBody.appendChild(emptyRow);
-          }
-        })
-        .catch(error => {
-          console.error('Fetch error:', error);
-          showError(`Failed to load data: ${error.message}`);
-          
-          // Показать заглушку при ошибке
-          tableBody.innerHTML = `
+    <h1>Muscle Measurements</h1>
+    
+    <table id="muscles-table">
+        <thead>
             <tr>
-              <td colspan="3" style="text-align: center; color: #757575">
-                Data will appear here after successful loading
-              </td>
+                <th>Name</th>
+                <th>Measure</th>
+                <th>Timestamp</th>
             </tr>
-          `;
+        </thead>
+        <tbody>
+            <!-- Данные будут загружены здесь -->
+        </tbody>
+    </table>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/muscles')
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error('Ошибка сети')
+                  }
+                  return response.json() 
+                })
+                .then(data => {
+                  console.log("Data:", data) // Посмотри в консоль браузера (F12)
+                    const tbody = document.querySelector('#muscles-table tbody');
+                    tbody.innerHTML = '';
+                    
+                    data.forEach(muscle => {
+                        const row = document.createElement('tr');
+                        
+                        // Исправленная логика fallback значений
+                        const name = muscle.name || 'N/A';
+                        const measure = typeof muscle.measure === 'number' ? muscle.measure.toFixed(2) : 'N/A';
+                        const date = muscle.timestamp ? new Date(muscle.timestamp).toLocaleString() : 'Invalid date';
+
+                        row.innerHTML = `
+                            <td>${name}</td>
+                            <td>${measure}</td>
+                            <td>${date}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         });
-    });
-  </script>
+    </script>
 </body>
 </html>

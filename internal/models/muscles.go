@@ -12,9 +12,9 @@ var (
 )
 
 type Muscle struct {
-	name          string    `json:"name"`
-	measure       float64   `json:"size"`
-	dateofmeasure time.Time `json:"timestamp"`
+	Name          string    `json:"name"`      // <-- Большая буква
+	Measure       float64   `json:"measure"`   // <-- Большая буква
+	DateOfMeasure time.Time `json:"timestamp"` // <-- Большая буква + правильный тег
 }
 
 func NewMuscle(name string, measure float64, dateofmeasure time.Time) (Muscle, error) {
@@ -25,9 +25,9 @@ func NewMuscle(name string, measure float64, dateofmeasure time.Time) (Muscle, e
 		return Muscle{}, EnteredInvalidMeasureError
 	}
 	return Muscle{
-		name:          name,
-		measure:       measure,
-		dateofmeasure: dateofmeasure.UTC(),
+		Name:          name, // <-- Обновил имена полей
+		Measure:       measure,
+		DateOfMeasure: dateofmeasure.UTC(),
 	}, nil
 }
 
@@ -35,8 +35,7 @@ func (m *Muscle) Rename(newname string) error {
 	if newname == "" {
 		return EnteredEmptyNameError
 	}
-	m.name = newname
-
+	m.Name = newname // <--
 	return nil
 }
 
@@ -44,8 +43,7 @@ func (m *Muscle) UpdateMeasure(newmeasure float64) error {
 	if newmeasure <= 0 {
 		return EnteredInvalidMeasureError
 	}
-	m.measure = newmeasure
-
+	m.Measure = newmeasure // <--
 	return nil
 }
 
@@ -54,7 +52,7 @@ func FindByName(muscles []Muscle, name string) (Muscle, error) {
 		return Muscle{}, EnteredEmptyNameError
 	}
 	for _, m := range muscles {
-		if m.name == name {
+		if m.Name == name { // <--
 			return m, nil
 		}
 	}
