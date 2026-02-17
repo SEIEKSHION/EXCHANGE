@@ -58,7 +58,7 @@ func addrValidation(addr string) error {
 }
 
 // Создание сервера
-func NewServer(addr string, handler *handlers.Handler) (*Server, error) {
+func NewServer(addr string, musclehandler *handlers.MusclesHandler, exchangehandler *handlers.Handler) (*Server, error) {
 	if err := addrValidation(addr); err != nil {
 		return nil, fmt.Errorf("server creation failed: %w", err)
 	}
@@ -76,12 +76,13 @@ func NewServer(addr string, handler *handlers.Handler) (*Server, error) {
 	// Маршруты
 	api := r.Group("/api")
 	{
-		api.GET("/valutes", handler.GetValutes)
-		api.POST("/convert", handler.ConvertCurrency)
+		api.GET("/valutes", exchangehandler.GetValutes)
+		api.POST("/convert", exchangehandler.ConvertCurrency)
+		api.GET("/muscles", musclehandler.GetMuscles)
 	}
-	r.GET("/", handler.MainPage)
-	r.GET("/exchanger", handler.Exchanger)
-
+	r.GET("/", exchangehandler.MainPage)
+	r.GET("/exchanger", exchangehandler.Exchanger)
+	r.GET("/muscles", musclehandler.MusclesPage) // покрыть миддлварем с авторизацией
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      r,
@@ -119,7 +120,7 @@ func (s *Server) Start() error {
 }
 
 // Остановка сервера
-func (s *Server) Stop(timeout time.Duration) error {
+func (s *Server) Stop(ctx context.Context) error {
 	s.mu.Lock()
 	if !s.running {
 		s.mu.Unlock()
@@ -127,9 +128,6 @@ func (s *Server) Stop(timeout time.Duration) error {
 	}
 	s.running = false
 	s.mu.Unlock()
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
 
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		return fmt.Errorf("server shutdown failed: %w", err)
@@ -147,8 +145,8 @@ func (s *Server) IsRunning() bool {
 }
 
 // Запуск сервера (старый интерфейс для совместимости)
-func StartServer(addr string, handler *handlers.Handler) error {
-	server, err := NewServer(addr, handler)
+func StartServer(addr string, exchangehandler *handlers.Handler, muscleshandler *handlers.MusclesHandler) error {
+	server, err := NewServer(addr, muscleshandler, exchangehandler)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}
