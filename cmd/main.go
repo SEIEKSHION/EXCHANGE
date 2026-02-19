@@ -11,6 +11,7 @@ import (
 
 	"github.com/SEIEKSHION/Exchanger/internal/handlers"
 	"github.com/SEIEKSHION/Exchanger/internal/models"
+	"github.com/SEIEKSHION/Exchanger/internal/repository"
 	"github.com/SEIEKSHION/Exchanger/internal/server"
 )
 
@@ -19,45 +20,43 @@ func main() {
 	// получение значений флагов
 	portPtr := flag.Int("port", 8080, "The server will be started on this port")
 	flag.Parse()
-	fmt.Println(*portPtr)
+
+	// получение курса валют
 	body, err := models.GetVaultExchange()
 	if err != nil {
 		panic(fmt.Errorf("Main: \n\t%v", err))
 	}
 
+	// обработка  курсов
 	valutes, err := models.ProceedExchangeVaults(body)
 	if err != nil {
 		panic(fmt.Errorf("Main:\n\t%v", err))
 	}
 
-	muscle1, err := models.NewMuscle("Бицепс", 94.6, time.Now().UTC())
-	if err != nil {
-		fmt.Errorf("Failed to create muscle1: %v", err)
-		os.Exit(1)
-	}
-	muscle2, err := models.NewMuscle("Трицепс", 38.4, time.Now().UTC())
-	if err != nil {
-		fmt.Errorf("Failed to create muscle2: %v", err)
-		os.Exit(1)
-	}
-	muscle3, err := models.NewMuscle("Предплечья", 26.2, time.Now().UTC())
-	if err != nil {
-		fmt.Errorf("Failed to create muscle3: %v", err)
-		os.Exit(1)
-	}
+	connString := "host=localhost port=5432 user=seiekshion password=UnderMind35327711_ dbname=exchanger sslmode=disable"
 
-	var muscles []models.Muscle = []models.Muscle{muscle1, muscle2, muscle3}
+	// Инициализация БД
+	dbClient, err := repository.NewClient(connString)
+	if err != nil {
+		log.Fatalf("DB connection failed: %v", err)
+	}
+	defer dbClient.DB.Close()
 
-	muscleHandler := handlers.NewMuscleHandler(muscles)
+	// инициализация хэндлеров
+	// muscleHandler := handlers.NewMuscleHandler()
+
+	measurementRepo := repository.NewMeasurementRepository(dbClient)
+	measurementHandler := handlers.NewMeasurementHandler(measurementRepo)
 	exchangeHandler := handlers.NewHandler(valutes)
 
 	// Создание и запуск сервера
-	srv, err := server.NewServer(fmt.Sprintf(":%d", *portPtr), muscleHandler, exchangeHandler) // передаём порт
+	srv, err := server.NewServer(fmt.Sprintf(":%d", *portPtr), measurementhandler, exchangeHandler) // передаём порт
 	if err != nil {
 		fmt.Printf("Error creating server: %v\n", err)
 		os.Exit(1)
 	}
 
+	// обработка при запуске сервера
 	if err := srv.Start(); err != nil {
 		fmt.Printf("Error starting server: %v\n", err)
 		os.Exit(1)
@@ -72,6 +71,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// обработка при остановке сервера
 	if err := srv.Stop(ctx); err != nil {
 		fmt.Printf("Error during server shutdown: %v\n", err)
 		os.Exit(1)
