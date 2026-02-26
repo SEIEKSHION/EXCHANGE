@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"net/http"
-
 	"errors"
 	"fmt"
+	"math"
+	"net/http"
 
-	"github.com/SEIEKSHION/Exchanger/internal/models"
+	"github.com/SEIEKSHION/Exchanger/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,10 +16,10 @@ var (
 )
 
 type Handler struct {
-	valutes []models.Valute
+	valutes []domain.Valute
 }
 
-func NewHandler(valutes []models.Valute) *Handler {
+func NewHandler(valutes []domain.Valute) *Handler {
 	return &Handler{valutes: valutes}
 }
 
@@ -67,17 +67,22 @@ func (h *Handler) ConvertCurrency(c *gin.Context) {
 	})
 }
 
+func RoundTo(val float64, precision int) float64 {
+	p := math.Pow(10, float64(precision))
+	return math.Round(val*p) / p
+}
+
 func (h *Handler) convertOperation(fromCurrency, toCurrency string, quantity float64) (float64, error) {
 	// валюта из которой
-	fromValute, err := models.GetValuteByName(h.valutes, fromCurrency)
+	fromValute, err := domain.GetValuteByName(h.valutes, fromCurrency)
 	if err != nil {
 		return 0.0, ValuteNotFound
 	}
 
 	// валюта в которую
-	var toValute models.Valute
+	var toValute domain.Valute
 
-	toValute, err = models.GetValuteByName(h.valutes, toCurrency)
+	toValute, err = domain.GetValuteByName(h.valutes, toCurrency)
 	if err != nil {
 		return 0.0, ValuteNotFound
 	}
@@ -99,7 +104,7 @@ func (h *Handler) convertOperation(fromCurrency, toCurrency string, quantity flo
 	fmt.Println("toCurrency: ", toCurrency)
 
 	// нужно перевести из начальной в конечную: поделить конечную на начальную, умножить на количество начальных
-	result := quantity * fromRate / toRate
+	result := RoundTo(quantity*fromRate/toRate, 3)
 
 	return result, nil
 }

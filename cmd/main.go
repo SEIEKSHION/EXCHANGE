@@ -9,9 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/SEIEKSHION/Exchanger/internal/domain"
 	"github.com/SEIEKSHION/Exchanger/internal/handlers"
-	"github.com/SEIEKSHION/Exchanger/internal/models"
-	"github.com/SEIEKSHION/Exchanger/internal/repository"
 	"github.com/SEIEKSHION/Exchanger/internal/server"
 )
 
@@ -22,35 +21,21 @@ func main() {
 	flag.Parse()
 
 	// получение курса валют
-	body, err := models.GetVaultExchange()
+	body, err := domain.GetVaultExchange()
 	if err != nil {
 		panic(fmt.Errorf("Main: \n\t%v", err))
 	}
 
 	// обработка  курсов
-	valutes, err := models.ProceedExchangeVaults(body)
+	valutes, err := domain.ProceedExchangeVaults(body)
 	if err != nil {
 		panic(fmt.Errorf("Main:\n\t%v", err))
 	}
 
-	connString := "host=localhost port=5432 user=seiekshion password=UnderMind35327711_ dbname=exchanger sslmode=disable"
-
-	// Инициализация БД
-	dbClient, err := repository.NewClient(connString)
-	if err != nil {
-		log.Fatalf("DB connection failed: %v", err)
-	}
-	defer dbClient.DB.Close()
-
-	// инициализация хэндлеров
-	// muscleHandler := handlers.NewMuscleHandler()
-
-	measurementRepo := repository.NewMeasurementRepository(dbClient)
-	measurementHandler := handlers.NewMeasurementHandler(measurementRepo)
 	exchangeHandler := handlers.NewHandler(valutes)
 
 	// Создание и запуск сервера
-	srv, err := server.NewServer(fmt.Sprintf(":%d", *portPtr), measurementhandler, exchangeHandler) // передаём порт
+	srv, err := server.NewServer(fmt.Sprintf(":%d", *portPtr), exchangeHandler) // передаём порт
 	if err != nil {
 		fmt.Printf("Error creating server: %v\n", err)
 		os.Exit(1)

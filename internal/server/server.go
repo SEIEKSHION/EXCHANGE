@@ -58,7 +58,7 @@ func addrValidation(addr string) error {
 }
 
 // Создание сервера
-func NewServer(addr string, measurementhandler *handlers.MeasurementHandler, exchangehandler *handlers.Handler) (*Server, error) {
+func NewServer(addr string, exchangehandler *handlers.Handler) (*Server, error) {
 	if err := addrValidation(addr); err != nil {
 		return nil, fmt.Errorf("server creation failed: %w", err)
 	}
@@ -78,12 +78,10 @@ func NewServer(addr string, measurementhandler *handlers.MeasurementHandler, exc
 	{
 		api.GET("/valutes", exchangehandler.GetValutes)
 		api.POST("/convert", exchangehandler.ConvertCurrency)
-		api.GET("/createmesaurement", measurementhandler.Create)
 	}
 
 	r.GET("/", exchangehandler.MainPage)
 	r.GET("/exchanger", exchangehandler.Exchanger)
-	// r.GET("/muscles", musclehandler.MusclesPage)  покрыть миддлварем с авторизацией
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      r,
@@ -146,8 +144,8 @@ func (s *Server) IsRunning() bool {
 }
 
 // Запуск сервера (старый интерфейс для совместимости)
-func StartServer(addr string, exchangehandler *handlers.Handler, muscleshandler *handlers.MusclesHandler) error {
-	server, err := NewServer(addr, muscleshandler, exchangehandler)
+func StartServer(addr string, exchangehandler *handlers.Handler) error {
+	server, err := NewServer(addr, exchangehandler)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

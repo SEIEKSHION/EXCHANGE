@@ -103,9 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            console.log('Результат:', data);
 
-            // ИСПРАВЛЕНО: в тексте был JS-код как строка — теперь корректно
             const fromCurrencyName = selectFromValute.options[selectFromValute.selectedIndex].text;
 			const toCurrencyName = selectToValute.options[selectToValute.selectedIndex].text;
 			
